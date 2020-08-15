@@ -2,7 +2,7 @@ export namespace Diablo{
     export interface IProjectProvider{
         name: string;
         publish: ()=>Promise<boolean>;
-        process: ()=>Promise<IProjectProviderResult>;
+        process: (malId: string, searchParam: string[], options?: any)=>Promise<IProjectProviderResult>;
     }
 
     export interface IProjectProviderResult{

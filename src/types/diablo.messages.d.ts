@@ -4,5 +4,6 @@ export namespace DiabloMessage {
         provider: string;
         malId: string;
         searchParam: string[];
+        retry?: number;
     }
 }

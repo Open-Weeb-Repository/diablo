@@ -1,8 +1,10 @@
 import debug from "debug";
 import {Diablo} from "diablo";
+import config from 'config';
 import {scrapJobQueue} from "./commons/amqp";
 import {DiabloMessage} from "diablo.messages";
 import projectJobRepository from "./repositories/project-jobs";
+import {Message} from "amqp-ts";
 
 const log = debug('diablo:main');
 
@@ -46,12 +48,16 @@ export class App {
                     await projectJobRepository.jobFail(content._id, "Unknown provider", context);
                 } else {
                     const jobInfo = await projectJobRepository.getById(content._id);
-                    const result = await provider.process();
                     const context = {
                         message: content,
-                        jobOptions: jobInfo.options,
-                        searchParam: jobInfo.searchParam,
+                        jobOptions: jobInfo ? jobInfo.options : undefined,
+                        searchParam: jobInfo ? jobInfo.searchParam : content.searchParam,
                     };
+                    const result = await (provider as Diablo.IProjectProvider).process(
+                        content.malId,
+                        context.searchParam,
+                        context.jobOptions
+                    );
                     if (result.status) {
                         await projectJobRepository.jobSuccess(content._id, result.message, context);
                         log("Job %s Success", content._id);
@@ -60,11 +66,23 @@ export class App {
                         log("Job %s Return Fail with message: ", content._id, result.message);
                     }
                 }
-                return message.ack();
             }catch (err) {
-                /* todo: requeue but limit how much it can be requeued */
-                log("Job %s failed", content._id);
-                message.reject(true);
+                const retry = content.retry || 0;
+                log("Job %s failed nRetry: %d", content._id, retry);
+                if (retry < config.get('queue.maxRetry')) {
+                    content.retry = retry +1;
+                    const retryMessage = new Message(content);
+                    retryMessage.sendTo(scrapJobQueue);
+                } else {
+                    const context = {
+                        message: content,
+                        error: err
+                    };
+                    await projectJobRepository.jobFail(content._id, `Unexpected error with ${retry} retries`, context);
+                }
+            } finally {
+                message.ack();
+                log("Job %s Done and ack has been sent", content._id);
             }
         });
     }
