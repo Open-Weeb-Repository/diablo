@@ -59,7 +59,10 @@ export class App {
                         context.jobOptions
                     );
                     if (result.status) {
-                        await projectJobRepository.jobSuccess(content._id, result.message, context);
+                        await Promise.all([
+                            projectJobRepository.jobSuccess(content._id, result.message, context),
+                            projectJobRepository.updateJobOption(content._id, result.options)
+                        ]);
                         log("Job %s Success", content._id);
                     } else {
                         await projectJobRepository.jobFail(content._id, result.message, context);

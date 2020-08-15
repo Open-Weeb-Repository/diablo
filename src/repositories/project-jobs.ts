@@ -52,4 +52,13 @@ export default {
             }
         });
     },
+
+    updateJobOption(_id: string, options: any) {
+        return projectJobs.update({_id}, {
+            $set: {
+                updatedAt: new Date(),
+                options
+            }
+        });
+    }
 }

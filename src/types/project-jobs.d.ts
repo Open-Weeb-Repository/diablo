@@ -4,6 +4,8 @@ export namespace DBProjectJob {
         options: any;
         n_fail: number;
         n_done: number;
+        malId: string;
+        provider: string;
     }
 
     export type SearchParam = string[];

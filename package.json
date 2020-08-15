@@ -8,7 +8,7 @@
     "watch": "nodemon -w ./src src/index.ts",
     "build": "tsc",
     "start": "node diablo",
-    "tool:add-scrapp-job": "ts-node ./tools/add-scrapper-job.ts"
+    "tool:add-scrapp-job": "ts-node ./tools/add-scrapper-job.ts start"
   },
   "keywords": [],
   "author": "",
@@ -27,12 +27,13 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
+    "amqp-ts": "^1.8.0",
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "config": "^3.3.1",
     "debug": "^4.1.1",
+    "moment": "^2.27.0",
     "monk": "^7.3.1",
-    "yargs": "^15.4.1",
-    "amqp-ts": "^1.8.0"
+    "yargs": "^15.4.1"
   }
 }
