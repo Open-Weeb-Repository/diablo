@@ -1,3 +1,5 @@
+import {IDBProject} from "project";
+
 export namespace Diablo{
     export interface IProjectProvider{
         name: string;
@@ -9,6 +11,7 @@ export namespace Diablo{
         status: boolean;
         message: string;
         options?: any;
+        project?: IDBProject;
     }
 }
 

@@ -6,8 +6,6 @@ import debug from "debug";
 import {IProviderOploverz} from "./types";
 import searchSeries from "./helpers/search-series";
 import {seriesDetail} from "./helpers/series-detail";
-import {IDBProject} from "project";
-import projectRepo from "../../repositories/projects";
 
 const log = debug("diablo:provider:anime_oploverz");
 
@@ -39,32 +37,15 @@ export default class implements Diablo.IProjectProvider{
             }
         }
         const seriesDetailResult = await seriesDetail(newOptions.detailUrl);
-        const projectResult: IDBProject = {
-            malId: malId,
-            ...this.dbProjectProvider,
-            ...seriesDetailResult
-        };
-        const existingProject = await projectRepo.findOne(projectResult);
-        if (!existingProject) {
-            // create new
-            log("Project not found in database, create new!");
-            await projectRepo.create(projectResult);
-        } else {
-            // compare last works
-            if (existingProject.lastWork === projectResult.lastWork) {
-                log("Project %s last work is equal to existing", projectResult.malId);
-                return {
-                    message: "No new work received",
-                    status: false
-                }
-            }
-            log("Update project %s", projectResult.malId);
-            await projectRepo.update(projectResult);
-        }
         return {
             message: "Success",
             status: true,
-            options: newOptions
+            options: newOptions,
+            project: {
+                malId: malId,
+                ...this.dbProjectProvider,
+                ...seriesDetailResult
+            }
         }
     }
 
