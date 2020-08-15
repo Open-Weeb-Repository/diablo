@@ -4,7 +4,7 @@ import {IDBProjectProvider} from "project-providers";
 import getProviderInfo from "./helpers/get-provider-info";
 import projectProviderRepo from "../../repositories/project-providers";
 import projectRepo from "../../repositories/projects";
-import searchProjectByTitle from "./helpers/search-project-by-title";
+import searchProjectByTitle, {parseDetailUrl} from "./helpers/search-project-by-title";
 import {IDBProject, IProjectResult} from "project";
 import {IOptions} from "./types/options";
 
@@ -16,53 +16,60 @@ export default class AnimeSamehadakuProvider implements Diablo.IProjectProvider 
 
     async process(malId: string, searchParam: string[], options?: IOptions): Promise<Diablo.IProjectProviderResult> {
         log("Start Process for malId: %s", malId);
+        let searchResult: IProjectResult;
+        let newOptions: IOptions;
         if (options) {
-            searchParam = [ options.validSearch ];
-        }
-        for (let searchQ of searchParam) {
-            let searchResult = await searchProjectByTitle(searchQ);
-            if (!searchResult) {
-                log("Not found with search %s", searchQ);
-                continue;
-            }
-            log("Project found with search %s updating option!", searchQ);
-            searchResult = (searchResult as IProjectResult);
-            const newOption: IOptions = {
-                validSearch: searchQ
-            }
-
-            const projectResult: IDBProject = {
-                malId: malId,
-                ...this.dbProjectProvider,
-                ...searchResult
-            };
-            const existingProject = await projectRepo.findOne(projectResult);
-            if (!existingProject) {
-                // create new
-                log("Project not found in database, create new!");
-                await projectRepo.create(projectResult);
-            } else {
-                // compare last works
-                if (existingProject.lastWork === projectResult.lastWork) {
-                    log("Project %s last work is equal to existing", projectResult.malId);
-                    return {
-                        message: "No new work received",
-                        status: false
-                    }
+            log("saved detail url found: %s", options.detailUrl);
+            searchResult = await parseDetailUrl(options.detailUrl);
+            newOptions = options;
+        } else {
+            for (let searchQ of searchParam) {
+                let detailUrl: string;
+                [searchResult, detailUrl] = await searchProjectByTitle(searchQ);
+                if (!searchResult) {
+                    log("Not found with search %s", searchQ);
+                    continue;
                 }
-                log("Update project %s", projectResult.malId);
-                await projectRepo.update(projectResult);
-            }
-
-            return {
-                message: "Success",
-                status: true,
-                options: newOption
+                log("Project found with search %s updating option!", searchQ);
+                newOptions = {
+                    detailUrl: detailUrl
+                }
+                break;
             }
         }
+        if (!searchResult) {
+            return {
+                message: "All search param not found",
+                status: false
+            }
+        }
+        const projectResult: IDBProject = {
+            malId: malId,
+            ...this.dbProjectProvider,
+            ...searchResult
+        };
+        const existingProject = await projectRepo.findOne(projectResult);
+        if (!existingProject) {
+            // create new
+            log("Project not found in database, create new!");
+            await projectRepo.create(projectResult);
+        } else {
+            // compare last works
+            if (existingProject.lastWork === projectResult.lastWork) {
+                log("Project %s last work is equal to existing", projectResult.malId);
+                return {
+                    message: "No new work received",
+                    status: false
+                }
+            }
+            log("Update project %s", projectResult.malId);
+            await projectRepo.update(projectResult);
+        }
+
         return {
-            message: "All search param not found",
-            status: false
+            message: "Success",
+            status: true,
+            options: newOptions
         }
     }
 
