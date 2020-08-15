@@ -27,10 +27,15 @@ export default class implements Diablo.IProjectProvider{
                 newOptions = {
                     detailUrl: searchResult.detailUrl
                 }
+                log("Search \"%s\" found with url %s", searchQ, searchResult.detailUrl);
+                break;
             }
-            return {
-                message: "All search param not found",
-                status: false
+            if (!newOptions) {
+                log("All search param not found");
+                return {
+                    message: "All search param not found",
+                    status: false
+                }
             }
         }
         const seriesDetailResult = await seriesDetail(newOptions.detailUrl);
