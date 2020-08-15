@@ -19,7 +19,7 @@ export default class implements Diablo.IProjectProvider{
             logo: "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
             site: "Dummy",
             title: "Dummy Provider",
-            type: "dummy",
+            type: "anime",
             workerJobName: this.name
         };
         const result = await projectProviderRepo.updateProviders(providerInfo);
