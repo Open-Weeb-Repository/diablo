@@ -7,6 +7,8 @@ const connection = new Amqp.Connection(config.get("queue.connection"));
 
 export const scrapJobQueue = connection.declareQueue(config.get("queue.projectScrapperQueueName"));
 
+scrapJobQueue.prefetch(config.get("queue.nPrefetch"));
+
 export function closeConnection() {
     if (connection.isConnected) {
         log("clossing amqp connection");

@@ -9,3 +9,4 @@ Scrape task worker for **Open Weeb Repository** projects
 1. ``DB_CONN`` Mongo DB Connection
 1. ``QUEUE_CONN`` Amqp connection 
 1. ``QUEUE_PROJECT_SCRAPPER`` project scrapper queue name
+1. ``QUEUE_NPREFETCH`` Queue prefetch

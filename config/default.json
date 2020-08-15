@@ -3,6 +3,7 @@
   "queue": {
     "connection": "amqp://localhost",
     "projectScrapperQueueName": "project-scrap",
-    "maxRetry": 4
+    "maxRetry": 4,
+    "nPrefetch": 5
   }
 }
