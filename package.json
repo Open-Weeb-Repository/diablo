@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "nodemon -w ./src src/index.ts",
     "build": "tsc",
-    "start": "node diablo"
+    "start": "node diablo",
+    "tool:add-scrapp-job": "ts-node ./tools/add-scrapper-job.ts"
   },
   "keywords": [],
   "author": "",

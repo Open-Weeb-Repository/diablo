@@ -1,0 +1,7 @@
+{
+  "db": "DB_CONN",
+  "queue": {
+    "connection": "QUEUE_CONN",
+    "projectScrapperQueueName": "QUEUE_PROJECT_SCRAPPER"
+  }
+}

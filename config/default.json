@@ -1,0 +1,7 @@
+{
+  "db": "localhost/open-weeb-repo",
+  "queue": {
+    "connection": "amqp://localhost",
+    "projectScrapperQueueName": "project-scrap"
+  }
+}
