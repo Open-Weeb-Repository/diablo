@@ -2,6 +2,7 @@
 Scrape task worker for **Open Weeb Repository** projects
 
 ### What this service do?
+1. Publish available provider info
 1. Recive RabbitMQ message for scrape task
 1. Scrape project and save it to db according to received message
 
