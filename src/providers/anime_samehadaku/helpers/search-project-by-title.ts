@@ -26,7 +26,7 @@ export async function parseDetailUrl(detailUrl: string):Promise<IProjectResult> 
     const $anchor = episode.find(".epsright span.eps a");
     const date = episode.find(".date").text();
     return {
-        lastUpdated: moment(`${date} +07:00`, "DD MMMM YYYY Z", "id", true).toDate(),
+        lastUpdated: moment(`${date} +07:00`, "D MMMM YYYY Z", "id", true).toDate(),
         lastWork: $anchor.text(),
         url: $anchor.attr("href")
     }
