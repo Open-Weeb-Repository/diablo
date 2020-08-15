@@ -1,21 +1,38 @@
+import yargs from "yargs";
+import projectJobRepo from "../src/repositories/project-jobs";
 import {Message} from "amqp-ts";
 import { scrapJobQueue, closeConnection } from "../src/commons/amqp";
 import { DiabloMessage } from "../src/types/diablo.messages";
+import db from "../src/commons/db";
 
-const messageContent: DiabloMessage.IScrapeMessage = {
-    _id: "5f3788b3802a55397385909e",
-    malId: "66654bfd9f791006fbe94f2833f9144f",
-    provider: "anime_dummy",
-    searchParam: [
-        "The God of High School",
-        "GOHS",
-        "THE GOD OF HIGH SCHOOL ゴッド・オブ・ハイスクール"
-    ]
-};
+yargs
+    .command("start [jobId]", "Start jobid", yargs=>{
+        yargs.positional("jobId", {
+            describe: "Job ID",
+        })
+    }, args => main(args).catch(err=>console.error(err)))
+    .argv;
 
-const msg = new Message(messageContent);
-msg.sendTo(scrapJobQueue);
-console.dir(messageContent);
-console.log('Send!');
+async function main(args: any){
+    if (!args.jobId) {
+        return;
+    }
+    console.log(`getting job id: ${args.jobId}`);
+    const job = await projectJobRepo.getById(args.jobId);
+    if (!job) {
+        throw new Error("Project Not Found!");
+    }
 
-closeConnection();
+    const messageContent: DiabloMessage.IScrapeMessage = {
+        _id: job._id.toString(),
+        malId: job.malId,
+        provider: job.provider,
+        searchParam: job.searchParam
+    };
+
+    const msg = new Message(messageContent);
+    msg.sendTo(scrapJobQueue);
+    console.log('Job sent');
+    closeConnection();
+    db.close().catch(err=>console.error(err));
+}
