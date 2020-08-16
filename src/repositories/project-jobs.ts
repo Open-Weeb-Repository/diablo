@@ -1,6 +1,7 @@
 import db from "../commons/db";
 import {DBProjectJob, DBProjectJobLog} from "project-jobs";
 import {Commons} from "diablo";
+import logger from "../commons/logger";
 
 export const projectJobs = db.get<DBProjectJob.IProjectJob & Commons.IHasUpdatedAt>("projectScrapeJobs");
 const projectJobLogs = db.get<DBProjectJobLog.IProjectJobLog>("projectScrapeJobLogs");
@@ -25,7 +26,7 @@ export default {
     jobFail(_id: string, message: string, context?: any) {
         writeProjectJobLog("fail", _id, message, context)
             .catch((err) => {
-                console.error('error writing log to db', err.message);
+                logger.error('error writing log to db', err.message);
             });
         return projectJobs.update({_id}, {
             $inc: {

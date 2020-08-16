@@ -6,6 +6,7 @@ import {DiabloMessage} from "diablo.messages";
 import projectJobRepository from "./repositories/project-jobs";
 import {Message} from "amqp-ts";
 import projectRepo from "./repositories/projects";
+import logger from "./commons/logger";
 
 const log = debug('diablo:main');
 
@@ -28,7 +29,7 @@ export class App {
             const success = await this.projectProviders[projectProvidersKey].publish();
             if (!success) {
                 // todo remove fail to publish provider from db
-                console.warn(`Publish will remove ${projectProvidersKey} from provider list`);
+                logger.error(`Publish will remove ${projectProvidersKey} from provider list`);
             }
         }
     }
@@ -47,6 +48,7 @@ export class App {
                         message: content,
                     };
                     await projectJobRepository.jobFail(content._id, "Unknown provider", context);
+                    logger.error(`Unknown provider: ${content.provider}`);
                     return;
                 }
                 const jobInfo = await projectJobRepository.getById(content._id);
@@ -62,13 +64,13 @@ export class App {
                 );
                 if (!result.status) {
                     await projectJobRepository.jobFail(content._id, result.message, context);
-                    log("Job %s Return Fail with message: ", content._id, result.message);
+                    logger.error(`Job "${content._id}" failed: ${result.message}`);
                     return;
                 }
                 if (!result.project) {
                     const msg = "Scrapping success but no project data returned";
                     await projectJobRepository.jobFail(content._id, msg, context);
-                    log("Job %s Return Fail with message: ", content._id, msg);
+                    logger.error(`Job "${content._id}" failed: ${msg}`);
                     return;
                 }
                 const tasks: Promise<any>[] = [];
@@ -80,6 +82,7 @@ export class App {
                 } else if (existingProject.lastWork === result.project.lastWork) {
                     log("Project %s last work is equal to existing", result.project.malId);
                     await projectJobRepository.jobFail(content._id, "No new work received", context);
+                    logger.error(`Job ${content._id} failed: no new work received`);
                     return;
                 } else {
                     log("Update project %s", result.project.malId);
@@ -90,19 +93,21 @@ export class App {
                     tasks.push(projectJobRepository.updateJobOption(content._id, result.options));
                 }
                 await Promise.all(tasks);
-                log("Job %s Success", content._id);
+                logger.info(`Job ${content._id} success`);
             } catch (err) {
                 const retry = content.retry || 0;
                 log("Job %s failed nRetry: %d", content._id, retry);
                 if (retry < config.get('queue.maxRetry')) {
                     content.retry = retry + 1;
                     const retryMessage = new Message(content);
+                    logger.info(`Job ${content._id} failed: retrying (${retry})`);
                     retryMessage.sendTo(scrapJobQueue);
                 } else {
                     const context = {
                         message: content,
                         error: err
                     };
+                    logger.info(`Job ${content._id} failed with unknown reason: ${err}`);
                     await projectJobRepository.jobFail(content._id, `Unexpected error with ${retry} retries`, context);
                 }
             } finally {
@@ -115,7 +120,7 @@ export class App {
     registerProvider(provider: Diablo.IProjectProvider) {
         log("register project provider: %s", provider.name);
         if (this.projectProviders[provider.name]) {
-            console.warn(`Provider with name "${provider.name}" already exist, and will be replaced with new.`)
+            logger.warn(`Provider with name "${provider.name}" already exist, and will be replaced with new.`)
         }
         this.projectProviders[provider.name] = provider;
     }
