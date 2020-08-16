@@ -29,7 +29,8 @@ export default class AnimeOtakudesuProvider extends AbstractProvider<IOptions>{
         for (let searchParam of searchParams) {
             const $ = await getpage("https://otakudesu.org/", {
                 params: {
-                    s: searchParam
+                    s: searchParam,
+                    post_type: 'anime'
                 }
             });
             const searchResult = $(".chivsrc li");
@@ -39,6 +40,7 @@ export default class AnimeOtakudesuProvider extends AbstractProvider<IOptions>{
             const detailUrl = searchResult.first().find("h2 a").attr("href");
             // getting listEpsUrl
             options = await this.getOptions(detailUrl);
+            break;
         }
         if (options) {
             result = await this.parseWithOption(options);
