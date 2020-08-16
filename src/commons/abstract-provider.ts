@@ -11,11 +11,11 @@ export abstract class AbstractProvider<OPT = any> implements Diablo.IProjectProv
     dbProjectProvider: IDBProjectProvider;
 
     async process(malId: string, searchParam: string[], options: OPT): Promise<Diablo.IProjectProviderResult> {
-        AbstractProvider.debugLog("Start Process for malId: %s", [malId]);
+        this.debugLog("Start Process for malId: %s", [malId]);
         let projectFound: IProjectResult;
         let newOptions: OPT;
         if (options) {
-            AbstractProvider.debugLog("saved option found: %o", options);
+            this.debugLog("saved option found: %o", options);
             projectFound = await this.parseWithOption(options);
             newOptions = options;
         }
@@ -41,13 +41,13 @@ export abstract class AbstractProvider<OPT = any> implements Diablo.IProjectProv
     }
 
     async publish(): Promise<boolean> {
-        AbstractProvider.debugLog("Getting provider info \"%s\"", this.name);
+        this.debugLog("Getting provider info");
         this.dbProjectProvider = await this.getProviderInfo();
         const result = await projectProviderRepo.updateProviders(this.dbProjectProvider);
         return Boolean((result as any).ok);
     }
 
-    protected static debugLog(msg: string, ...args:any[]) {
+    protected debugLog(msg: string, ...args:any[]) {
         log(`${msg} [${this.name}]`, ...args)
     }
 
