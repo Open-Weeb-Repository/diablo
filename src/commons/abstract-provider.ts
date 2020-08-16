@@ -48,7 +48,7 @@ export abstract class AbstractProvider<OPT = any> implements Diablo.IProjectProv
     }
 
     protected static debugLog(msg: string, ...args:any[]) {
-        log(`${msg} [${this.name}]`, args)
+        log(`${msg} [${this.name}]`, ...args)
     }
 
     abstract async parseWithOption(options: OPT): Promise<IProjectResult>;
